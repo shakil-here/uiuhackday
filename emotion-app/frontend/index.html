@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emotion Detection</title>
+</head>
+<body>
+
+<h2>Facial Emotion Recognition</h2>
+
+<video id="video" autoplay></video>
+<br><br>
+<button onclick="capture()">Predict Emotion</button>
+<p id="result"></p>
+
+<script>
+const video = document.getElementById("video");
+
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => video.srcObject = stream);
+
+function capture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  canvas.toBlob(blob => {
+    if (!blob) {
+        console.error("Blob creation failed");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", blob, "capture.jpg");  // Add filename
+
+    fetch("http://127.0.0.1:8000/predict-emotion", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+          `Emotion: ${data.emotion} (confidence: ${data.confidence})`;
+    })
+    .catch(err => console.error(err));
+  }, "image/jpeg");
+
+}
+</script>
+
+</body>
+</html>
