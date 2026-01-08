@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import './Home.css'
 
 function Home() {
@@ -68,7 +69,7 @@ function Home() {
             </p>
             
             <div className="cta-buttons">
-              <button className="cta-primary">Start Chat</button>
+              <Link to="/login" className="cta-primary">Start Chat</Link>
               <button className="cta-secondary">Experience Emotion-Aware UI</button>
             </div>
           </div>

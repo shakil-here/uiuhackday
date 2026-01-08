@@ -175,6 +175,9 @@
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.01em;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .cta-primary {
