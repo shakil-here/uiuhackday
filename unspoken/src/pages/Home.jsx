@@ -1,20 +1,35 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEmotion } from '../context/EmotionContext'
+import { useAuth } from '../context/AuthContext'
 import './Home.css'
 
 function Home() {
-  const [emotion, setEmotion] = useState('calm')
+  const { emotion } = useEmotion()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    // Cycle through emotions for demo purposes
-    const emotions = ['calm', 'happy', 'neutral', 'stress']
-    let index = 0
-    const interval = setInterval(() => {
-      index = (index + 1) % emotions.length
-      setEmotion(emotions[index])
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
+  const handleStartChat = () => {
+    if (isAuthenticated) {
+      navigate('/messaging')
+    } else {
+      navigate('/login')
+    }
+  }
+
+  const getMouthPath = () => {
+    switch (emotion) {
+      case 'happy':
+        return "M 75 130 Q 100 150 125 130" // Smile
+      case 'sad':
+        return "M 75 135 Q 100 120 125 135" // Frown
+      case 'angry':
+        return "M 75 140 Q 100 125 125 140" // Angry frown
+      case 'fear':
+        return "M 85 135 Q 100 145 115 135" // Small worried mouth
+      default: // calm
+        return "M 80 135 L 120 135" // Neutral line
+    }
+  }
 
   return (
     <div className={`home ${emotion}`}>
@@ -39,12 +54,7 @@ function Home() {
               
               {/* Mouth - changes based on emotion */}
               <path 
-                d={emotion === 'happy' 
-                  ? "M 75 130 Q 100 150 125 130" 
-                  : emotion === 'stress'
-                  ? "M 75 135 Q 100 120 125 135"
-                  : "M 80 135 L 120 135"
-                } 
+                d={getMouthPath()}
                 className="mouth"
                 strokeWidth="2"
                 fill="none"
@@ -69,7 +79,7 @@ function Home() {
             </p>
             
             <div className="cta-buttons">
-              <Link to="/login" className="cta-primary">Start Chat</Link>
+              <button onClick={handleStartChat} className="cta-primary">Start Chat</button>
               <button className="cta-secondary">Experience Emotion-Aware UI</button>
             </div>
           </div>

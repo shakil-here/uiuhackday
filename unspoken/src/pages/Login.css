@@ -130,6 +130,16 @@
   color: #94a3b8;
 }
 
+.success-message {
+  padding: 0.875rem 1rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+  color: #16a34a;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .error-message {
   padding: 0.875rem 1rem;
   background: rgba(239, 68, 68, 0.1);
