@@ -33,3 +33,32 @@ A multi-modal FastAPI application that detects emotions from both uploaded image
     ├── requirements.txt
     └── README.md
 
+## 🚀 Getting Started
+
+### 📋 Prerequisites
+- **Option A**: [Docker](https://www.docker.com/) installed  
+- **Option B**: Python 3.9+ and `pip`
+
+---
+
+### 🐳 Option 1: Using Docker (Recommended)
+
+Docker ensures all system dependencies (e.g., OpenCV, GUI libraries) are correctly configured.
+
+**1. Build the image:**
+```bash
+docker build -t emotion-api .
+```
+
+## API Documentation
+
+Once the server is running, explore the interactive Swagger UI at:
+👉 http://localhost:8000/docs
+
+#### 1. 👁️ Vision Analysis
+
+Detects the dominant emotion from a human face in an image.
+
+Endpoint: POST /predict-emotion/vision
+Content-Type: multipart/form-data
+Payload: file (JPG or PNG)
