@@ -12,6 +12,13 @@
 <button onclick="capture()">Predict Emotion</button>
 <p id="result"></p>
 
+<div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+    <h3>Textual Emotion Analysis</h3>
+    <textarea id="userText" placeholder="How are you feeling?" rows="3" cols="40"></textarea><br>
+    <button onclick="analyzeText()">Analyze Text</button>
+    <p id="textResult"></p>
+</div>
+
 <script>
 const video = document.getElementById("video");
 
@@ -25,26 +32,43 @@ function capture() {
   canvas.getContext("2d").drawImage(video, 0, 0);
 
   canvas.toBlob(blob => {
-    if (!blob) {
-        console.error("Blob creation failed");
-        return;
-    }
+      if (!blob) {
+          console.error("Blob creation failed");
+          return;
+      }
 
-    const formData = new FormData();
-    formData.append("file", blob, "capture.jpg");  // Add filename
+      const formData = new FormData();
+      formData.append("file", blob, "capture.jpg");  // Add filename
 
-    fetch("http://127.0.0.1:8000/predict-emotion", {
+      fetch("http://127.0.0.1:8000/predict-emotion/vision", {
+          method: "POST",
+          body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+          document.getElementById("result").innerText =
+            `Emotion: ${data.emotion} (confidence: ${data.confidence})`;
+      })
+      .catch(err => console.error(err));
+    }, "image/jpeg");
+
+  }
+
+
+
+
+  async function analyzeText() {
+    const text = document.getElementById("userText").value;
+    const resDiv = document.getElementById("textResult");
+
+    const response = await fetch("http://127.0.0.1:8000/predict-emotion/text", {
         method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("result").innerText =
-          `Emotion: ${data.emotion} (confidence: ${data.confidence})`;
-    })
-    .catch(err => console.error(err));
-  }, "image/jpeg");
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text })
+    });
 
+    const data = await response.json();
+    resDiv.innerText = `Detected Emotion: ${data.dominant_emotion} (${(data.confidence * 100).toFixed(1)}%)`;
 }
 </script>
 
