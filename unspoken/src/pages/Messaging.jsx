@@ -330,7 +330,10 @@ function Messaging() {
                               <span className="message-sender">{message.senderName}</span>
                             )}
                             <div className="message-bubble">
-                              <div className="message-text">{message.text}</div>
+                              <div className="message-text">
+                                <span className="message-emoji">{emotions[message.emotion]?.emoji || emotions.calm.emoji}</span>
+                                {message.text}
+                              </div>
                               <div className="message-footer">
                                 <span className="message-time">
                                   {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

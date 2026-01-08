@@ -437,6 +437,15 @@
   color: #0f172a;
   line-height: 1.6;
   word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-emoji {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  display: inline-block;
 }
 
 .message-item.own-message .message-text {
