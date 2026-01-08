@@ -34,6 +34,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # --------------------------------------------------
 INSTALLED_APPS = [
     # Django core
+    "users", 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +48,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'core',
-    'users',
+    
     
 ]
 
