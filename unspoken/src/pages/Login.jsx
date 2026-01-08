@@ -19,7 +19,6 @@ function Login() {
   useEffect(() => {
     if (location.state?.message) {
       setSuccess(location.state.message)
-      // Clear the message from location state
       window.history.replaceState({}, document.title)
     }
   }, [location])
@@ -45,60 +44,39 @@ function Login() {
         return
       }
 
-      // Check localStorage for user credentials
-      const users = JSON.parse(localStorage.getItem('users') || '[]')
-      const user = users.find(u => u.email === formData.email)
-
-      if (!user) {
-        setError('No account found with this email. Please sign up first.')
-        setLoading(false)
-        return
+      const payload = {
+        email: formData.email,
+        password: formData.password
       }
 
-      if (user.password !== formData.password) {
-        setError('Incorrect password. Please try again.')
-        setLoading(false)
-        return
-      }
+      const response = await axiosPublic.post('/users/login/', payload)
 
-      // Login successful - save current user session
-      const sessionData = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        loggedInAt: new Date().toISOString()
-      }
-      
-      // Use auth context to update authentication state
-      login(sessionData)
-      
-      console.log('Login successful from localStorage:', sessionData)
-      
-      // Optionally try backend login
-      try {
-        const payload = {
-          email: formData.email,
-          password: formData.password
+      if (response.data.access && response.data.refresh) {
+        localStorage.setItem('accessToken', response.data.access)
+        localStorage.setItem('refreshToken', response.data.refresh)
+
+        const profileResponse = await axiosPublic.get('/users/me/', {
+          headers: {
+            Authorization: `Bearer ${response.data.access}`
+          }
+        })
+
+        const sessionData = {
+          id: profileResponse.data.id,
+          username: profileResponse.data.username,
+          full_name: profileResponse.data.full_name,
+          email: profileResponse.data.email,
+          loggedInAt: new Date().toISOString()
         }
-        const response = await axiosPublic.post('/login/', payload)
-        console.log('Backend login successful:', response.data)
-        // Store backend token if provided
-        if (response.data.token) {
-          localStorage.setItem('authToken', response.data.token)
-        }
-      } catch (err) {
-        // If backend fails, still proceed since we authenticated from localStorage
-        console.warn('Backend login failed, but user authenticated locally:', err)
+
+        login(sessionData)
+        console.log('Backend login successful:', sessionData)
+        navigate('/account', { replace: true })
       }
-      
-      // Redirect to messaging page after successful login
-      navigate('/messaging', { replace: true })
-      
     } catch (err) {
       setError(
+        err.response?.data?.detail || 
         err.response?.data?.message || 
-        err.response?.data?.error || 
-        err.response?.data?.detail ||
         'Login failed. Please check your credentials.'
       )
     } finally {

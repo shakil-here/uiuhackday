@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import axiosPublic from '../hook/axiosPublic'
-import './Login.css'
+import './Register.css'
 
 function Register() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
+    full_name: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    password_confirm: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,75 +32,64 @@ function Register() {
     setLoading(true)
 
     try {
-      // Validation
-      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      if (!formData.username || !formData.full_name || !formData.email || !formData.password || !formData.password_confirm) {
         setError('Please fill in all fields')
         setLoading(false)
         return
       }
 
-      if (formData.password !== formData.confirmPassword) {
+      if (formData.password !== formData.password_confirm) {
         setError('Passwords do not match')
         setLoading(false)
         return
       }
 
-      if (formData.password.length < 8) {
-        setError('Password must be at least 8 characters long')
-        setLoading(false)
-        return
-      }
-
-      // Check if user already exists in localStorage
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]')
-      const userExists = existingUsers.find(user => user.email === formData.email)
-      
-      if (userExists) {
-        setError('An account with this email already exists')
-        setLoading(false)
-        return
-      }
-
-      // Create user object
-      const userData = {
-        id: Date.now().toString(),
-        name: formData.name,
+      const payload = {
+        username: formData.username,
+        full_name: formData.full_name,
         email: formData.email,
-        password: formData.password, // In production, this should be hashed
-        createdAt: new Date().toISOString()
+        password: formData.password,
+        password_confirm: formData.password_confirm
       }
 
-      // Save to localStorage
-      existingUsers.push(userData)
-      localStorage.setItem('users', JSON.stringify(existingUsers))
-      
-      console.log('Registration successful, saved to localStorage:', userData)
-      
-      // Optionally send to backend API
-      try {
-        const payload = {
-          name: formData.name,
+      const response = await axiosPublic.post('/users/register/', payload)
+
+      if (response.data.id) {
+        const loginResponse = await axiosPublic.post('/users/login/', {
           email: formData.email,
-          password: formData.password,
+          password: formData.password
+        })
+
+        if (loginResponse.data.access && loginResponse.data.refresh) {
+          localStorage.setItem('accessToken', loginResponse.data.access)
+          localStorage.setItem('refreshToken', loginResponse.data.refresh)
+
+          const profileResponse = await axiosPublic.get('/users/me/', {
+            headers: {
+              Authorization: `Bearer ${loginResponse.data.access}`
+            }
+          })
+
+          const sessionData = {
+            id: profileResponse.data.id,
+            username: profileResponse.data.username,
+            full_name: profileResponse.data.full_name,
+            email: profileResponse.data.email,
+            loggedInAt: new Date().toISOString()
+          }
+
+          login(sessionData)
+          console.log('Backend registration successful:', sessionData)
+          navigate('/account', { replace: true })
         }
-        await axiosPublic.post('/register/', payload)
-      } catch (err) {
-        // If backend fails, still proceed since we saved to localStorage
-        console.warn('Backend registration failed, but user saved locally:', err)
       }
-      
-      // Redirect to login page after successful registration
-      navigate('/login', { 
-        state: { message: 'Registration successful! Please sign in.' }
-      })
-      
     } catch (err) {
       setError(
-        err.response?.data?.message || 
-        err.response?.data?.error || 
-        err.response?.data?.detail ||
+        err.response?.data?.detail || 
+        err.response?.data?.message ||
         err.response?.data?.email?.[0] ||
-        err.response?.data?.password?.[0] ||
+        err.response?.data?.username?.[0] ||
+        err.response?.data?.full_name?.[0] ||
         'Registration failed. Please try again.'
       )
     } finally {
@@ -106,21 +98,35 @@ function Register() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <h1 className="login-title">Create Account</h1>
-          <p className="login-subtitle">Join Unspoken and start communicating with emotions</p>
+    <div className="register-page">
+      <div className="register-container">
+        <div className="register-header">
+          <h1 className="register-title">Create Account</h1>
+          <p className="register-subtitle">Join Unspoken today</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+            <label htmlFor="username">Username</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Choose a username"
+              required
+              autoComplete="username"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="full_name">Full Name</label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              value={formData.full_name}
               onChange={handleChange}
               placeholder="John Doe"
               required
@@ -150,22 +156,21 @@ function Register() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="At least 8 characters"
+              placeholder="Enter your password"
               required
               autoComplete="new-password"
-              minLength={8}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="password_confirm">Confirm Password</label>
             <input
               type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
+              id="password_confirm"
+              name="password_confirm"
+              value={formData.password_confirm}
               onChange={handleChange}
-              placeholder="Re-enter your password"
+              placeholder="Confirm your password"
               required
               autoComplete="new-password"
             />
@@ -179,14 +184,14 @@ function Register() {
 
           <button 
             type="submit" 
-            className="login-button"
+            className="register-button"
             disabled={loading}
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
-        <div className="login-footer">
+        <div className="register-footer">
           <p>
             Already have an account?{' '}
             <Link to="/login" className="link">
