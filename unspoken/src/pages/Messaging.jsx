@@ -177,16 +177,16 @@ function Messaging() {
     <div className="messaging-page">
       {/* Emotion Test Controls */}
       <div className="emotion-controls">
-        <div className="emotion-controls-title">Test Emotions</div>
+        <div className="emotion-controls-title">Emotions</div>
         <div className="emotion-buttons">
           {Object.entries(emotions).map(([key, value]) => (
             <button
               key={key}
               className={`emotion-btn ${key} ${emotion === key ? 'active' : ''}`}
               onClick={() => changeEmotion(key)}
+              title={value.name}
             >
               <span>{value.emoji}</span>
-              <span>{value.name}</span>
             </button>
           ))}
         </div>
