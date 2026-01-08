@@ -1,9 +1,20 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEmotion } from '../context/EmotionContext'
+import { useAuth } from '../context/AuthContext'
 import './Home.css'
 
 function Home() {
-  const { emotion, emotions, changeEmotion } = useEmotion()
+  const { emotion } = useEmotion()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
+  const handleStartChat = () => {
+    if (isAuthenticated) {
+      navigate('/messaging')
+    } else {
+      navigate('/login')
+    }
+  }
 
   const getMouthPath = () => {
     switch (emotion) {
@@ -22,23 +33,6 @@ function Home() {
 
   return (
     <div className={`home ${emotion}`}>
-      {/* Emotion Test Controls */}
-      <div className="emotion-controls">
-        <div className="emotion-controls-title">Test Emotions</div>
-        <div className="emotion-buttons">
-          {Object.entries(emotions).map(([key, value]) => (
-            <button
-              key={key}
-              className={`emotion-btn ${key} ${emotion === key ? 'active' : ''}`}
-              onClick={() => changeEmotion(key)}
-            >
-              <span>{value.emoji}</span>
-              <span>{value.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
@@ -85,7 +79,7 @@ function Home() {
             </p>
             
             <div className="cta-buttons">
-              <Link to="/login" className="cta-primary">Start Chat</Link>
+              <button onClick={handleStartChat} className="cta-primary">Start Chat</button>
               <button className="cta-secondary">Experience Emotion-Aware UI</button>
             </div>
           </div>
