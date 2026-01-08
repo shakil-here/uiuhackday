@@ -38,7 +38,7 @@ function Login() {
       }
 
       // Send email and password to backend API using axiosPublic
-      const response = await axiosPublic.post('/api/auth/login/', payload)
+      const response = await axiosPublic.post('/login/', payload)
       
       // Handle successful login
       console.log('Login successful:', response.data)

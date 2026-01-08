@@ -1,23 +1,44 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useEmotion } from '../context/EmotionContext'
 import './Home.css'
 
 function Home() {
-  const [emotion, setEmotion] = useState('calm')
+  const { emotion, emotions, changeEmotion } = useEmotion()
 
-  useEffect(() => {
-    // Cycle through emotions for demo purposes
-    const emotions = ['calm', 'happy', 'neutral', 'stress']
-    let index = 0
-    const interval = setInterval(() => {
-      index = (index + 1) % emotions.length
-      setEmotion(emotions[index])
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
+  const getMouthPath = () => {
+    switch (emotion) {
+      case 'happy':
+        return "M 75 130 Q 100 150 125 130" // Smile
+      case 'sad':
+        return "M 75 135 Q 100 120 125 135" // Frown
+      case 'angry':
+        return "M 75 140 Q 100 125 125 140" // Angry frown
+      case 'fear':
+        return "M 85 135 Q 100 145 115 135" // Small worried mouth
+      default: // calm
+        return "M 80 135 L 120 135" // Neutral line
+    }
+  }
 
   return (
     <div className={`home ${emotion}`}>
+      {/* Emotion Test Controls */}
+      <div className="emotion-controls">
+        <div className="emotion-controls-title">Test Emotions</div>
+        <div className="emotion-buttons">
+          {Object.entries(emotions).map(([key, value]) => (
+            <button
+              key={key}
+              className={`emotion-btn ${key} ${emotion === key ? 'active' : ''}`}
+              onClick={() => changeEmotion(key)}
+            >
+              <span>{value.emoji}</span>
+              <span>{value.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
@@ -39,12 +60,7 @@ function Home() {
               
               {/* Mouth - changes based on emotion */}
               <path 
-                d={emotion === 'happy' 
-                  ? "M 75 130 Q 100 150 125 130" 
-                  : emotion === 'stress'
-                  ? "M 75 135 Q 100 120 125 135"
-                  : "M 80 135 L 120 135"
-                } 
+                d={getMouthPath()}
                 className="mouth"
                 strokeWidth="2"
                 fill="none"
